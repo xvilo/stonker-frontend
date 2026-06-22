@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { usePnl, usePositions } from '../api/queries'
-import { money, number, percent, shortDate, sign, signedMoney } from '../lib/format'
+import { Money } from '../components/Money'
+import { number, percent, shortDate, sign } from '../lib/format'
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -37,16 +38,16 @@ export function DashboardPage() {
                 <span className="stat-label">Market value</span>
                 <span className="ccy-chip">{b.currency}</span>
               </div>
-              <div className="stat-value">{money(b.marketValue, b.currency)}</div>
+              <div className="stat-value"><Money value={b.marketValue} currency={b.currency} /></div>
               <div className={`stat-sub ${sign(b.totalPnl)}`}>
-                {signedMoney(b.totalPnl, b.currency)} total P/L
+                <Money value={b.totalPnl} currency={b.currency} signed /> total P/L
               </div>
               <div className="stat-sub muted">
-                Unrealized <span className={sign(b.unrealizedPnl)}>{signedMoney(b.unrealizedPnl, b.currency)}</span>
+                Unrealized <span className={sign(b.unrealizedPnl)}><Money value={b.unrealizedPnl} currency={b.currency} signed /></span>
                 {b.unrealizedPnlPct != null && <> ({percent(b.unrealizedPnlPct)})</>}
               </div>
               <div className="stat-sub muted">
-                Realized <span className={sign(b.realizedPnl)}>{signedMoney(b.realizedPnl, b.currency)}</span>
+                Realized <span className={sign(b.realizedPnl)}><Money value={b.realizedPnl} currency={b.currency} signed /></span>
               </div>
             </div>
           ))}
@@ -86,16 +87,16 @@ export function DashboardPage() {
                     </span>
                   </td>
                   <td className="right mono">{number(p.quantity, 4)}</td>
-                  <td className="right mono">{money(p.averageCost, p.currency)}</td>
-                  <td className="right mono">{p.marketPrice ? money(p.marketPrice, p.currency) : '—'}</td>
-                  <td className="right mono">{p.marketValue ? money(p.marketValue, p.currency) : '—'}</td>
+                  <td className="right mono"><Money value={p.averageCost} currency={p.currency} /></td>
+                  <td className="right mono"><Money value={p.marketPrice} currency={p.currency} /></td>
+                  <td className="right mono"><Money value={p.marketValue} currency={p.currency} /></td>
                   <td className={`right mono ${sign(p.unrealizedPnl)}`}>
-                    {p.unrealizedPnl ? signedMoney(p.unrealizedPnl, p.currency) : '—'}
+                    <Money value={p.unrealizedPnl} currency={p.currency} signed />
                     {p.unrealizedPnlPct != null && (
                       <div className="faint" style={{ fontSize: '0.78rem' }}>{percent(p.unrealizedPnlPct)}</div>
                     )}
                   </td>
-                  <td className={`right mono ${sign(p.realizedPnl)}`}>{signedMoney(p.realizedPnl, p.currency)}</td>
+                  <td className={`right mono ${sign(p.realizedPnl)}`}><Money value={p.realizedPnl} currency={p.currency} signed /></td>
                 </tr>
               ))}
               {rows.length === 0 && !positions.isLoading && (

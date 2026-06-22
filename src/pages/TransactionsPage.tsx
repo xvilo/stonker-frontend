@@ -12,7 +12,8 @@ import {
 } from '../api/queries'
 import { apiErrorMessage } from '../api/client'
 import type { BrokerType, InstrumentType, TransactionType } from '../api/types'
-import { money, number, shortDate } from '../lib/format'
+import { Money } from '../components/Money'
+import { number, shortDate } from '../lib/format'
 
 export function TransactionsPage() {
   const { selectedAccountId } = useAuth()
@@ -47,8 +48,8 @@ export function TransactionsPage() {
                   <td><span className="sym">{t.instrument.symbol}<small>{t.instrument.name}</small></span></td>
                   <td><span className={`badge ${t.type === 'BUY' ? 'buy' : 'sell'}`}>{t.type}</span></td>
                   <td className="right mono">{number(t.quantity, 4)}</td>
-                  <td className="right mono">{money(t.pricePerShare, t.currency)}</td>
-                  <td className="right mono">{money(t.fee, t.feeCurrency)}</td>
+                  <td className="right mono"><Money value={t.pricePerShare} currency={t.currency} /></td>
+                  <td className="right mono"><Money value={t.fee} currency={t.feeCurrency} /></td>
                   <td>{t.brokerType}</td>
                   <td><span className="badge muted">{t.source}</span></td>
                   <td className="right">

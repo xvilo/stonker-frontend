@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   CartesianGrid,
@@ -12,7 +12,8 @@ import {
 } from 'recharts'
 import { useAuth } from '../auth/AuthContext'
 import { useInstrumentPrices, useInstrumentTransactions, usePositions } from '../api/queries'
-import { money, number, percent, shortDate, sign, signedMoney } from '../lib/format'
+import { Money } from '../components/Money'
+import { money, number, percent, shortDate, sign } from '../lib/format'
 
 export function PositionDetailPage() {
   const { instrumentId = '' } = useParams()
@@ -67,20 +68,23 @@ export function PositionDetailPage() {
     )
   }
 
-  const stats: { label: string; value: string; cls?: string }[] = [
+  const stats: { label: string; value: ReactNode; cls?: string }[] = [
     { label: 'Quantity', value: number(position.quantity, 4) },
-    { label: 'Avg cost', value: money(position.averageCost, currency) },
-    { label: 'Cost basis', value: money(position.costBasis, currency) },
-    { label: 'Market price', value: position.marketPrice ? money(position.marketPrice, currency) : '—' },
-    { label: 'Market value', value: position.marketValue ? money(position.marketValue, currency) : '—' },
+    { label: 'Avg cost', value: <Money value={position.averageCost} currency={currency} /> },
+    { label: 'Cost basis', value: <Money value={position.costBasis} currency={currency} /> },
+    { label: 'Market price', value: <Money value={position.marketPrice} currency={currency} /> },
+    { label: 'Market value', value: <Money value={position.marketValue} currency={currency} /> },
     {
       label: 'Unrealized',
-      value:
-        (position.unrealizedPnl ? signedMoney(position.unrealizedPnl, currency) : '—') +
-        (position.unrealizedPnlPct != null ? ` (${percent(position.unrealizedPnlPct)})` : ''),
+      value: (
+        <>
+          <Money value={position.unrealizedPnl} currency={currency} signed />
+          {position.unrealizedPnlPct != null ? ` (${percent(position.unrealizedPnlPct)})` : ''}
+        </>
+      ),
       cls: sign(position.unrealizedPnl),
     },
-    { label: 'Realized', value: signedMoney(position.realizedPnl, currency), cls: sign(position.realizedPnl) },
+    { label: 'Realized', value: <Money value={position.realizedPnl} currency={currency} signed />, cls: sign(position.realizedPnl) },
   ]
 
   return (
@@ -199,8 +203,8 @@ export function PositionDetailPage() {
                   <td className="nowrap">{shortDate(t.tradeDate)}</td>
                   <td><span className={`badge ${t.type === 'BUY' ? 'buy' : 'sell'}`}>{t.type}</span></td>
                   <td className="right mono">{number(t.quantity, 4)}</td>
-                  <td className="right mono">{money(t.pricePerShare, t.currency)}</td>
-                  <td className="right mono">{money(t.fee, t.feeCurrency)}</td>
+                  <td className="right mono"><Money value={t.pricePerShare} currency={t.currency} /></td>
+                  <td className="right mono"><Money value={t.fee} currency={t.feeCurrency} /></td>
                   <td>{t.brokerType}</td>
                   <td><span className="badge muted">{t.source}</span></td>
                 </tr>

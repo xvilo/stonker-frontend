@@ -1,6 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useAccounts } from '../api/queries'
+import { useHideAmounts } from '../lib/privacy'
+import { UserMenu } from './UserMenu'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: '◧', end: true },
@@ -13,6 +15,7 @@ const NAV = [
 export function Layout() {
   const { user, logout, selectedAccountId, setSelectedAccountId } = useAuth()
   const { data: accounts } = useAccounts()
+  const [hideAmounts, toggleHideAmounts] = useHideAmounts()
 
   const initials = (user?.name ?? '?')
     .split(' ')
@@ -22,7 +25,7 @@ export function Layout() {
     .toUpperCase()
 
   return (
-    <div className="shell">
+    <div className={`shell ${hideAmounts ? 'hide-amounts' : ''}`}>
       <aside className="sidebar">
         <div className="brand">
           <span className="dot" />
@@ -60,14 +63,14 @@ export function Layout() {
               ))}
             </select>
           </div>
-          <div className="user-chip">
-            <div className="avatar">{initials}</div>
-            <div style={{ lineHeight: 1.2 }}>
-              <div style={{ fontWeight: 600 }}>{user?.name}</div>
-              <div className="faint" style={{ fontSize: '0.78rem' }}>{user?.email}</div>
-            </div>
-            <button className="btn-ghost btn-sm" onClick={logout}>Sign out</button>
-          </div>
+          <UserMenu
+            name={user?.name}
+            email={user?.email}
+            initials={initials}
+            hideAmounts={hideAmounts}
+            onToggleHideAmounts={toggleHideAmounts}
+            onLogout={logout}
+          />
         </header>
         <main className="content">
           <Outlet />
