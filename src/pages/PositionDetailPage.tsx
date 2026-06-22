@@ -52,7 +52,7 @@ export function PositionDetailPage() {
       }
       const avgCost = qty > 0 ? basis / qty : null
       const gainPct = avgCost && avgCost > 0 ? ((pt.close - avgCost) / avgCost) * 100 : null
-      return { ...pt, gainPct }
+      return { ...pt, gainPct, avgCost }
     })
   }, [prices.data, txns.data])
 
@@ -152,6 +152,17 @@ export function PositionDetailPage() {
                 stroke="#4f46e5"
                 strokeWidth={2}
                 dot={false}
+              />
+              <Line
+                yAxisId="price"
+                name="Avg cost"
+                type="stepAfter"
+                dataKey="avgCost"
+                stroke="#d97706"
+                strokeWidth={2}
+                strokeDasharray="5 4"
+                dot={false}
+                connectNulls
               />
               <Line
                 yAxisId="pct"
