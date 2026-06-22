@@ -8,6 +8,7 @@ import type {
   PerformanceReport,
   PnlReport,
   PositionsReport,
+  PriceSnapshot,
   Transaction,
   TransactionType,
   BrokerType,
@@ -58,6 +59,36 @@ export function useTransactions(accountId: string | null) {
       (
         await api.get<Transaction[]>('/transactions', {
           params: { account: accountIri(accountId!), 'order[tradeDate]': 'desc' },
+        })
+      ).data,
+  })
+}
+
+export function useInstrumentTransactions(accountId: string | null, instrumentId: string | null) {
+  return useQuery({
+    queryKey: ['transactions', accountId, instrumentId],
+    enabled: !!accountId && !!instrumentId,
+    queryFn: async () =>
+      (
+        await api.get<Transaction[]>('/transactions', {
+          params: {
+            account: accountIri(accountId!),
+            instrument: instrumentIri(instrumentId!),
+            'order[tradeDate]': 'desc',
+          },
+        })
+      ).data,
+  })
+}
+
+export function useInstrumentPrices(instrumentId: string | null) {
+  return useQuery({
+    queryKey: ['prices', instrumentId],
+    enabled: !!instrumentId,
+    queryFn: async () =>
+      (
+        await api.get<PriceSnapshot[]>('/price_snapshots', {
+          params: { instrument: instrumentIri(instrumentId!), 'order[date]': 'asc' },
         })
       ).data,
   })

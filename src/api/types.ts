@@ -131,6 +131,15 @@ export interface Invitation {
   expiresAt: string
 }
 
+export interface PriceSnapshot {
+  id: string
+  instrument: string
+  date: string
+  close: string
+  currency: string
+  source: 'API' | 'MANUAL'
+}
+
 export interface BrokerConnection {
   id: string
   account: string

@@ -3,6 +3,7 @@ import { useAuth } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { PositionDetailPage } from './pages/PositionDetailPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { PerformancePage } from './pages/PerformancePage'
 import { MembersPage } from './pages/MembersPage'
@@ -30,6 +31,7 @@ export default function App() {
       <Route path="/login" element={<Navigate to="/" replace />} />
       <Route element={<Layout />}>
         <Route index element={<DashboardPage />} />
+        <Route path="/positions/:instrumentId" element={<PositionDetailPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/performance" element={<PerformancePage />} />
         <Route path="/members" element={<MembersPage />} />

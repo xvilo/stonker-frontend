@@ -66,12 +66,6 @@ export function LoginPage() {
             {busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
         </form>
-
-        {mode === 'login' && (
-          <p className="faint" style={{ textAlign: 'center', marginTop: 16, fontSize: '0.8rem' }}>
-            Demo: sem.schilder@team.blue · password
-          </p>
-        )}
       </div>
     </div>
   )

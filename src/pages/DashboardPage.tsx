@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { usePnl, usePositions } from '../api/queries'
 import { money, number, percent, shortDate, sign, signedMoney } from '../lib/format'
 
 export function DashboardPage() {
+  const navigate = useNavigate()
   const { selectedAccountId } = useAuth()
   const pnl = usePnl(selectedAccountId)
   const positions = usePositions(selectedAccountId)
@@ -54,7 +56,7 @@ export function DashboardPage() {
       <div className="card">
         <div className="card-head">
           <h2>Positions</h2>
-          <span className="faint">{rows.length} instruments</span>
+          <span className="faint">{rows.length} instruments · click a row for details</span>
         </div>
         <div className="table-scroll">
           <table className="data">
@@ -71,10 +73,15 @@ export function DashboardPage() {
             </thead>
             <tbody>
               {rows.map((p) => (
-                <tr key={p.instrumentId}>
+                <tr
+                  key={p.instrumentId}
+                  style={{ cursor: 'pointer' }}
+                  title={`View ${p.symbol} details`}
+                  onClick={() => navigate(`/positions/${p.instrumentId}`)}
+                >
                   <td>
                     <span className="sym">
-                      {p.symbol}
+                      {p.symbol} <span className="faint">›</span>
                       <small>{p.name} · {p.type}</small>
                     </span>
                   </td>
