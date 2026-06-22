@@ -3,6 +3,7 @@ import { api } from './client'
 import type {
   Account,
   BrokerConnection,
+  BrokerSyncRun,
   Instrument,
   Invitation,
   PerformanceReport,
@@ -16,6 +17,7 @@ import type {
 
 export const accountIri = (id: string) => `/api/accounts/${id}`
 export const instrumentIri = (id: string) => `/api/instruments/${id}`
+export const brokerConnectionIri = (id: string) => `/api/broker_connections/${id}`
 
 // ---- Queries ---------------------------------------------------------------
 
@@ -118,6 +120,19 @@ export function useBrokerConnections(accountId: string | null) {
     queryFn: async () =>
       (await api.get<BrokerConnection[]>('/broker_connections', { params: { account: accountIri(accountId!) } }))
         .data,
+  })
+}
+
+export function useBrokerSyncRuns(connectionId: string | null) {
+  return useQuery({
+    queryKey: ['brokerSyncRuns', connectionId],
+    enabled: !!connectionId,
+    queryFn: async () =>
+      (
+        await api.get<BrokerSyncRun[]>('/broker_sync_runs', {
+          params: { brokerConnection: brokerConnectionIri(connectionId!), 'order[createdAt]': 'desc' },
+        })
+      ).data,
   })
 }
 

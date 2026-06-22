@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import {
   useBrokerConnections,
@@ -71,15 +72,23 @@ export function SettingsPage() {
 
           <div className="stack" style={{ gap: 8, marginTop: 16 }}>
             {(connections.data ?? []).map((c) => (
-              <div key={c.id} className="flex between">
+              <Link
+                key={c.id}
+                to={`/connections/${c.id}`}
+                className="flex between"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
                 <div>
                   <div className="sym">{c.label}</div>
                   <div className="faint" style={{ fontSize: '0.78rem' }}>
                     {c.brokerType} · {c.lastSyncAt ? `last sync ${shortDate(c.lastSyncAt)}` : 'never synced'}
                   </div>
                 </div>
-                <span className={`badge ${c.active ? 'role' : 'muted'}`}>{c.active ? 'Active' : 'Off'}</span>
-              </div>
+                <span className="flex" style={{ gap: 8, alignItems: 'center' }}>
+                  <span className={`badge ${c.active ? 'role' : 'muted'}`}>{c.active ? 'Active' : 'Off'}</span>
+                  <span className="faint" aria-hidden>›</span>
+                </span>
+              </Link>
             ))}
           </div>
         </div>

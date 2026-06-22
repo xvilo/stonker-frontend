@@ -149,3 +149,14 @@ export interface BrokerConnection {
   lastSyncAt: string | null
   createdAt: string
 }
+
+export interface BrokerSyncRun {
+  id: string
+  brokerConnection: string
+  account: string
+  fetched: boolean
+  imported: number
+  skipped: number
+  note: string | null
+  createdAt: string
+}

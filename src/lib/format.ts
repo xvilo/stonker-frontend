@@ -52,3 +52,16 @@ export function shortDate(value: string): string {
   if (Number.isNaN(d.getTime())) return value
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
+
+/** Date + time of day, for events that can recur within a day (e.g. sync runs). */
+export function dateTime(value: string): string {
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return value
+  return d.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
