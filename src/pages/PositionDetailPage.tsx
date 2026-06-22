@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -23,10 +24,37 @@ export function PositionDetailPage() {
   const position = positions.data?.positions.find((p) => p.instrumentId === instrumentId)
   const currency = position?.currency ?? 'EUR'
 
-  const priceSeries = useMemo(
-    () => (prices.data ?? []).map((p) => ({ date: p.date.slice(0, 10), close: Number.parseFloat(p.close) })),
-    [prices.data],
-  )
+  // Price points plus the gain % at each date. The gain % uses the average cost
+  // *as of that date* (replayed from transactions), not the current avg cost —
+  // otherwise the line would just be the price line rescaled.
+  const series = useMemo(() => {
+    const points = (prices.data ?? [])
+      .map((p) => ({ date: p.date.slice(0, 10), close: Number.parseFloat(p.close) }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+
+    const trades = [...(txns.data ?? [])].sort((a, b) => a.tradeDate.localeCompare(b.tradeDate))
+
+    let ti = 0
+    let qty = 0
+    let basis = 0
+    return points.map((pt) => {
+      while (ti < trades.length && trades[ti].tradeDate.slice(0, 10) <= pt.date) {
+        const t = trades[ti]
+        const q = Number.parseFloat(t.quantity)
+        if (t.type === 'BUY') {
+          basis += q * Number.parseFloat(t.pricePerShare) + (Number.parseFloat(t.fee) || 0)
+          qty += q
+        } else {
+          if (qty > 0) basis -= (basis / qty) * q // reduce basis at the running avg cost
+          qty -= q
+        }
+        ti++
+      }
+      const avgCost = qty > 0 ? basis / qty : null
+      const gainPct = avgCost && avgCost > 0 ? ((pt.close - avgCost) / avgCost) * 100 : null
+      return { ...pt, gainPct }
+    })
+  }, [prices.data, txns.data])
 
   if (positions.isLoading) {
     return <div className="spinner">Loading…</div>
@@ -83,25 +111,58 @@ export function PositionDetailPage() {
       <div className="card card-pad" style={{ marginBottom: 22 }}>
         <div className="flex between" style={{ marginBottom: 10 }}>
           <h2>Price history</h2>
-          <span className="faint">{priceSeries.length} points</span>
+          <span className="faint">{series.length} points</span>
         </div>
         {prices.isLoading ? (
           <div className="spinner">Loading…</div>
-        ) : priceSeries.length === 0 ? (
+        ) : series.length === 0 ? (
           <div className="empty">No price history yet — fetch or backfill prices.</div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={priceSeries} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+            <LineChart data={series} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#eef0f3" />
               <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#9aa1ad' }} minTickGap={48} />
               <YAxis
+                yAxisId="price"
                 tick={{ fontSize: 12, fill: '#9aa1ad' }}
                 width={56}
                 domain={['auto', 'auto']}
                 tickFormatter={(v: number) => new Intl.NumberFormat(undefined, { notation: 'compact' }).format(v)}
               />
-              <Tooltip formatter={(v) => money(typeof v === 'number' ? v : Number.parseFloat(String(v)), currency)} />
-              <Line type="monotone" dataKey="close" stroke="#4f46e5" strokeWidth={2} dot={false} />
+              <YAxis
+                yAxisId="pct"
+                orientation="right"
+                tick={{ fontSize: 12, fill: '#9aa1ad' }}
+                width={56}
+                domain={['auto', 'auto']}
+                tickFormatter={(v: number) => `${v.toFixed(0)}%`}
+              />
+              <Tooltip
+                formatter={(v, name) => {
+                  const n = typeof v === 'number' ? v : Number.parseFloat(String(v))
+                  return [name === 'Gain %' ? percent(n) : money(n, currency), name]
+                }}
+              />
+              <Legend />
+              <Line
+                yAxisId="price"
+                name="Price"
+                type="monotone"
+                dataKey="close"
+                stroke="#4f46e5"
+                strokeWidth={2}
+                dot={false}
+              />
+              <Line
+                yAxisId="pct"
+                name="Gain %"
+                type="monotone"
+                dataKey="gainPct"
+                stroke="#16a34a"
+                strokeWidth={2}
+                dot={false}
+                connectNulls
+              />
             </LineChart>
           </ResponsiveContainer>
         )}
