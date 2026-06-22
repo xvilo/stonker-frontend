@@ -13,11 +13,13 @@ import {
 import { useAuth } from '../auth/AuthContext'
 import { useInstrumentPrices, useInstrumentTransactions, usePositions } from '../api/queries'
 import { Money } from '../components/Money'
-import { money, number, percent, shortDate, sign } from '../lib/format'
+import { money, number, percent, REDACTED, shortDate, sign } from '../lib/format'
+import { useAmountsHidden } from '../lib/privacy'
 
 export function PositionDetailPage() {
   const { instrumentId = '' } = useParams()
   const { selectedAccountId } = useAuth()
+  const hideAmounts = useAmountsHidden()
   const positions = usePositions(selectedAccountId)
   const txns = useInstrumentTransactions(selectedAccountId, instrumentId)
   const prices = useInstrumentPrices(instrumentId)
@@ -131,7 +133,9 @@ export function PositionDetailPage() {
                 tick={{ fontSize: 12, fill: '#9aa1ad' }}
                 width={56}
                 domain={['auto', 'auto']}
-                tickFormatter={(v: number) => new Intl.NumberFormat(undefined, { notation: 'compact' }).format(v)}
+                tickFormatter={(v: number) =>
+                  hideAmounts ? REDACTED : new Intl.NumberFormat(undefined, { notation: 'compact' }).format(v)
+                }
               />
               <YAxis
                 yAxisId="pct"
@@ -143,8 +147,13 @@ export function PositionDetailPage() {
               />
               <Tooltip
                 formatter={(v, name) => {
+                  if (name === 'Gain %') {
+                    const n = typeof v === 'number' ? v : Number.parseFloat(String(v))
+                    return [percent(n), name]
+                  }
+                  if (hideAmounts) return [REDACTED, name]
                   const n = typeof v === 'number' ? v : Number.parseFloat(String(v))
-                  return [name === 'Gain %' ? percent(n) : money(n, currency), name]
+                  return [money(n, currency), name]
                 }}
               />
               <Legend />

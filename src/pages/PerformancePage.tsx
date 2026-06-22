@@ -11,6 +11,8 @@ import {
 } from 'recharts'
 import { useAuth } from '../auth/AuthContext'
 import { usePerformance } from '../api/queries'
+import { useAmountsHidden } from '../lib/privacy'
+import { REDACTED } from '../lib/format'
 
 type Metric = 'marketValue' | 'pnl' | 'pnlPct'
 const METRICS: { key: Metric; label: string }[] = [
@@ -34,6 +36,7 @@ function isoDaysAgo(days: number): string {
 
 export function PerformancePage() {
   const { selectedAccountId } = useAuth()
+  const hideAmounts = useAmountsHidden()
   const [metric, setMetric] = useState<Metric>('marketValue')
   const [range, setRange] = useState('1Y')
 
@@ -64,10 +67,13 @@ export function PerformancePage() {
     }
   }, [series, metric])
 
-  const fmtY = (v: number) =>
-    metric === 'pnlPct'
-      ? `${v.toFixed(0)}%`
-      : new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(v)
+  // The value/P-L axes carry currency amounts → redact under privacy mode.
+  // The % return axis is not a currency, so it stays readable.
+  const fmtY = (v: number) => {
+    if (metric === 'pnlPct') return `${v.toFixed(0)}%`
+    if (hideAmounts) return REDACTED
+    return new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(v)
+  }
 
   return (
     <>
@@ -107,6 +113,7 @@ export function PerformancePage() {
               <YAxis tickFormatter={fmtY} tick={{ fontSize: 12, fill: '#9aa1ad' }} width={56} />
               <Tooltip
                 formatter={(value, name) => {
+                  if (metric !== 'pnlPct' && hideAmounts) return [REDACTED, String(name)]
                   const n = typeof value === 'number' ? value : Number.parseFloat(String(value))
                   return [metric === 'pnlPct' ? `${n.toFixed(2)}%` : n.toFixed(2), String(name)]
                 }}

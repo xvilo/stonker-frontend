@@ -1,6 +1,9 @@
 // Formatting helpers. API money values are decimal strings; parse only for
 // display (never for arithmetic that matters).
 
+/** Shown in place of a currency value when privacy mode hides amounts. */
+export const REDACTED = '•••'
+
 export function money(value: string | number | null | undefined, currency: string): string {
   if (value === null || value === undefined || value === '') return '—'
   const n = typeof value === 'number' ? value : Number.parseFloat(value)
